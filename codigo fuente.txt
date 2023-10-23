@@ -1,0 +1,313 @@
+// C++ code
+// FEDERICO VIVAS DIV D
+
+// Definición de pines para el display de siete segmentos
+#define unidad A5
+#define decena A4
+
+// Definición de pines para botones, interruptor, motor y sensor de luz
+#define bajar 2
+#define subir 3
+#define interruptor 4
+#define motor A2
+
+// Definición de pines para los segmentos del display de siete segmentos
+#define A 10
+#define B 11
+#define C 5
+#define D 6
+#define E 7
+#define F 9
+#define G 8
+#define apagado 0
+#define t 10
+#define sensor A3
+
+// Declaración de variables globales
+const int fotoresistenciaPin = A1;
+int umbral = 50;
+int PRIMER_NO_PRIMO = 0;
+int PRIMER_PRIMO = 1;
+int ULTIMO_PRIMO = 97;
+int ULTIMO_NO_PRIMO = 99;
+int countDigit = PRIMER_PRIMO;
+int sube = 1;
+int previaSube = 1;
+int baja = 1;
+int previaBaja = 1;
+
+// Configuración inicial
+void setup() {
+  pinMode(bajar, INPUT_PULLUP);
+  pinMode(subir, INPUT_PULLUP);
+  pinMode(A, OUTPUT);
+  pinMode(B, OUTPUT);
+  pinMode(C, OUTPUT);
+  pinMode(D, OUTPUT);
+  pinMode(E, OUTPUT);
+  pinMode(F, OUTPUT);
+  pinMode(G, OUTPUT);
+  pinMode(motor, OUTPUT);
+  pinMode(decena, OUTPUT);
+  pinMode(unidad, OUTPUT);
+  digitalWrite(decena, 0);
+  digitalWrite(unidad, 0);
+  printDigit(0);
+  Serial.begin(9600);
+}
+void loop()
+{
+  int valorLuz = analogRead(fotoresistenciaPin);
+  int valorMapeado = map(valorLuz, 0, 1023, 0, 400);
+  if (valorMapeado > 70)
+  {
+    digitalWrite(motor, 1);
+  }
+  else
+  {
+  	digitalWrite(motor, 0);
+  }
+  int lectura = analogRead(sensor);
+  float voltaje = 5.0 /1024 * lectura ;
+  float temp = voltaje * 100 -50 ;
+  if(temp >= umbral)//SI LA TEMPERATURA PASA EL VALOR DEL "UMBRAL" EL CODIGO FUNCIONARIA, EN OTRO CASO NO PASA NADA
+ {
+  int valorLuz = analogRead(fotoresistenciaPin);
+  int valorMapeado = map(valorLuz, 0, 1023, 0, 400);
+  int primos = digitalRead(interruptor);
+  int pressed = keypressed();
+  if (pressed == subir)
+  {
+    if (primos == HIGH)
+    {
+      
+      if (primo(countDigit) == true)
+      {
+        countDigit++;
+      }
+
+      while (primo(countDigit) == false)
+      {
+        countDigit++;
+      }
+    } 
+    else
+    {
+      countDigit++;
+    }
+    if (countDigit > 99)
+    
+    if (primos == HIGH)
+    {
+    countDigit = PRIMER_PRIMO;
+	} 
+    else
+    {
+    countDigit = PRIMER_NO_PRIMO;
+	}
+  	}
+  	else if(pressed == bajar)
+  	{
+    if (primos == HIGH)
+    {
+      if (primo(countDigit) == true) {
+        countDigit--;
+      }
+      
+      while (primo(countDigit) == false)
+      {
+        countDigit--;
+      }
+    }
+	else
+    {
+      countDigit--;
+    }
+    
+    if(countDigit < 0)
+      	if (primos == HIGH)
+    	{
+    	countDigit = ULTIMO_PRIMO;
+		}
+      else
+    {
+    	countDigit = ULTIMO_NO_PRIMO;
+	}
+      
+  	}
+
+  printCount(countDigit);
+	}
+else
+{
+	digitalWrite(decena ,1);
+  	digitalWrite(unidad, 1);
+}
+}
+
+int keypressed(void)
+{
+  	
+	sube = digitalRead(subir);
+  	baja = digitalRead(bajar);
+  	if (sube)//no presione
+   		previaSube = 1;
+  	if (baja)//no presione
+   		previaBaja = 1;
+  
+  	if (sube==0 && sube != previaSube)
+    {
+    	previaSube = sube;
+        return subir;
+    }
+  	if (baja==0 && baja != previaBaja)
+    {
+    	previaBaja = baja;
+        return bajar;
+    }
+ return 0;
+    
+}
+void prendeDigito(int digito)
+{
+  	if (digito == unidad)
+    {
+  		digitalWrite(unidad, 0);
+      	digitalWrite(decena, 1);
+      	delay(t);
+    }
+  	else if (digito == decena)
+    {
+    	digitalWrite(unidad, 1);
+      	digitalWrite(decena, 0);
+      	delay(t);
+    }
+  	else
+    {
+    	digitalWrite(unidad, 1);
+      	digitalWrite(decena, 1);
+    }
+}
+void printCount(int cuenta)
+{
+	prendeDigito(apagado);
+  	printDigit(cuenta/10);
+  	prendeDigito(decena);
+  	prendeDigito(apagado);
+  	printDigit(cuenta-10 * ((int)cuenta/10));
+  	prendeDigito(unidad);
+}
+
+bool primo(int numero)
+{
+  	if (numero <= 1)
+    {
+        numero = PRIMER_PRIMO;
+    }
+  	
+  	if (numero > 99)
+	{
+    	numero = ULTIMO_PRIMO;
+    }
+    
+    for (int i = 2; i * i <= numero; ++i)
+    {
+        if (numero % i == 0)
+        {
+            return false;
+        }
+    }
+    return true;
+  
+}
+
+
+////////////////////////////////////
+void printDigit(int digit)
+{ 
+		digitalWrite(A, 0);
+  		digitalWrite(B, 0);
+  		digitalWrite(C, 0);
+  		digitalWrite(D, 0);
+ 		digitalWrite(E, 0);
+  		digitalWrite(F, 0);
+  		digitalWrite(G, 0);
+  	switch(digit)
+    {
+    	case 0: 
+      	digitalWrite(A, 1);
+  		digitalWrite(B, 1);
+  		digitalWrite(C, 1);
+  		digitalWrite(D, 1);
+ 		digitalWrite(E, 1);
+  		digitalWrite(F, 1);
+      	break;
+      	case 1:
+  		digitalWrite(B, 1);
+  		digitalWrite(C, 1);
+      	break;
+      	case 2:
+      	digitalWrite(A, 1);
+        digitalWrite(B, 1);
+        digitalWrite(D, 1);
+        digitalWrite(E, 1);
+        digitalWrite(G, 1);  
+      	break;
+      	case 3:
+      	
+      	digitalWrite(motor,0);
+      	digitalWrite(A, 1);
+        digitalWrite(B, 1);
+        digitalWrite(C, 1);
+        digitalWrite(D, 1);
+        digitalWrite(G, 1);
+      	break;
+      	case 4:
+      	digitalWrite(motor,0);
+        digitalWrite(B, 1);
+        digitalWrite(C, 1);
+        digitalWrite(F, 1);
+        digitalWrite(G, 1);
+      	break;
+      	case 5:
+    	digitalWrite(A, 1);
+        digitalWrite(C, 1);
+        digitalWrite(D, 1);
+        digitalWrite(F, 1);
+        digitalWrite(G, 1);
+        digitalWrite(motor,1);
+      	break;
+      	case 6:
+      	digitalWrite(motor,0);
+      	digitalWrite(A, 1);
+        digitalWrite(C, 1);
+        digitalWrite(D, 1);
+        digitalWrite(E, 1);
+        digitalWrite(F, 1);
+        digitalWrite(G, 1);
+      	break;
+      	case 7:
+      	digitalWrite(motor,0);
+      	digitalWrite(A, 1);
+        digitalWrite(B, 1);
+        digitalWrite(C, 1);
+      	break;
+      	case 8:
+      	digitalWrite(A, 1);
+        digitalWrite(B, 1);
+        digitalWrite(C, 1);
+        digitalWrite(D, 1);
+        digitalWrite(E, 1);
+        digitalWrite(F, 1);
+        digitalWrite(G, 1);
+      	break;
+      	case 9:
+      	digitalWrite(A, 1);
+        digitalWrite(B, 1);
+        digitalWrite(C, 1);
+        digitalWrite(D, 1);
+        digitalWrite(F, 1);
+        digitalWrite(G, 1);
+      	break;
+    }
+}
